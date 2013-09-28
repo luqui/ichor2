@@ -205,7 +205,10 @@ void main(void) {
 	uniform float time;
 
 void main(void) {
-  gl_FragColor = texture2D(sampler_prev, uv);
+  vec4 last = texture2D(sampler_prev, uv);
+
+  float red = last.x - last.z;
+  gl_FragColor = vec4(red, 0., -red, 1.);
 
 
   /*
@@ -587,7 +590,12 @@ void main(void){
 		var noisePixels = [], pixels = [], simpixels = [], pixels2 = [], pixels3 = [], pixels4 = [], pixels5 = [], pixels6 = [];
 		for ( var i = 0; i < sizeX; i++) {
 			for ( var j = 0; j < sizeY; j++) {
-				noisePixels.push(Math.random() * 255, Math.random() * 255, Math.random() * 255, 255);
+                if (i < j) {
+                    noisePixels.push(0, 0, Math.random() * 255, 255);
+                }
+                else {
+                    noisePixels.push(Math.random() * 255, 0, 0, 255);
+                }
 				pixels.push(0, 0, 0, 255);
 				if( i < sizeX/simScale && j < sizeY/simScale) simpixels.push(0, 0, 0, 255);
 				if( i < sizeX/2 && j < sizeY/2) pixels2.push(0, 0, 0, 255);
