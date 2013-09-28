@@ -138,14 +138,16 @@ void main(void) {
   vec2 uv = uv - motion; // add fluid motion
   vec4 noise = texture2D(sampler_noise, uv_orig + rnd.xy)-0.5; 
 
-  gl_FragColor.x = texture2D(sampler_prev, uv).x;
-  gl_FragColor.x += (texture2D(sampler_prev, uv).x-texture2D(sampler_blur3, uv).x)*28./256.;
+  gl_FragColor = texture2D(sampler_prev, uv);
+
+  //gl_FragColor.x = texture2D(sampler_prev, uv).x;
+  //gl_FragColor.x += (texture2D(sampler_prev, uv).x-texture2D(sampler_blur, uv).x)*1./256.;
  
-  gl_FragColor.y = texture2D(sampler_prev, uv).y + noise.y*1./256.;
-  gl_FragColor.y += (texture2D(sampler_prev, uv).y-texture2D(sampler_blur5, uv).y)*1./64.;
+  //gl_FragColor.y = texture2D(sampler_prev, uv).y + noise.y*1./256.;
+  //gl_FragColor.y += (texture2D(sampler_prev, uv).y-texture2D(sampler_blur, uv).y)*1./256.;
   
-  gl_FragColor.z = texture2D(sampler_prev, uv).z;
-  gl_FragColor.z += (texture2D(sampler_prev, uv).z-texture2D(sampler_blur3, uv).z)*28./256.;
+  //gl_FragColor.z = texture2D(sampler_prev, uv).z;
+  //gl_FragColor.z += (texture2D(sampler_prev, uv).z-texture2D(sampler_blur, uv).z)*1./256.;
  
 
   // Old reaction diffusion stuff.
