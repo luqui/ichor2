@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Fluid simulation with Turing patterns | WebGL shader demo</title>
+<script src="jquery-2.0.3.js" language="javascript"></script>
 <script id="shader-vs" type="x-shader/x-vertex"> 
   attribute vec3 aPos;
   attribute vec2 aTexCoord;
@@ -928,16 +929,12 @@ void main(void){
 	}
 
 	function fr() { // updates every second
-		document.getElementById("fps").textContent = frame;
-		console.log(frame);
 		frame = 0;
 	}
-	
-	var hidden = false;
-	function hide(){
-		hidden = !hidden;
-		document.getElementById("desc").style.setProperty('visibility', hidden?'hidden':'visible' );
-	}
+    
+    $(function() {
+        load();
+    });
 </script>
 <style type="text/css">
 body {
@@ -963,28 +960,7 @@ a {
 }
 </style>
 </head>
-<body onload="load()" ondblclick="hide()">
-	<div id="desc">
-		Fps: <span id="fps"></span><br> <b>Fluid simulation with Turing patterns (sort of)</b>
-		<p>
-			This demo is built on the <a href="http://webglplayground.net/new" target="playground">Reaction-Diffusion
-				template</a> from the WebGL playground and <a href="http://www.ibiblio.org/e-notes/webgl/gpu/fluid.htm" target="evgeny">Evgeny
-				Demidov</a>'s fluid simulation.<br> Anyway, this implementation does not use the OpenGL extension
-			OES_TEXTURE_FLOAT. Instead a <a href="https://gist.github.com/1713774" target="github">16bit "minifloat" buffer</a>
-			is used here.<br>The extension might still be a good start for optimization!<br>To be correct these aren't
-			real <a href="http://en.wikipedia.org/wiki/Reaction-diffusion#Two-component_reaction.E2.80.93diffusion_equations"
-				target="wiki">"Turing patterns"</a>, though the dots are quite characteristic. What you see is actually the simpler
-			kind of one-component Reaction-Diffusion equations.<br> The skin dot synthesis' native texture resolution is
-			1024x512 and the fluid simulation uses 512x256 cells. WebGL GPGPU, here ya go!
-			
-		<p>
-			If you like the demo don't forget to follow me on <a href="https://twitter.com/Flexi23" target="twitter">Twitter</a>
-			;).
-		<p>
-			(A simpler version is <a href="fluid-mix.html">here</a> to find)
-			<p>
-			Protip: doubleclick anywhere to hide this description box. ;)
-	</div>
-	<canvas id="c"></canvas>
+<body>
+    <canvas id="c"></canvas>
 </body>
 </html>
