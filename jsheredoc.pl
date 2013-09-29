@@ -6,17 +6,21 @@ while (my $line = <>) {
         my @lines;
         my $indent;
         
+        my $going = 1;
         while (<>) {
             chomp;
             if (/^(\s*)$endtoken\s*$/) {
                 $indent = $1;
-                break;
+                $going = 0;
+                last;
             }
             else {
-                s/(\\")/\\$1/;
-                push @lines, "$_\\\n";
+                s/([\\"])/\\$1/g;
+                push @lines, "$_\\n\\\n";
             }
         }
+
+        die "Reached end of file when scanning for end of heredoc $endtoken" if $going;
 
         s/^$indent// for @lines;
         my $str = join '', @lines;
