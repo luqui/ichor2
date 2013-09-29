@@ -288,18 +288,17 @@ void main(void){
 <script id="shader-fs-advect" type="x-shader/x-fragment"> 
 uniform vec2 texSize;
 uniform vec2 pixelSize;
+uniform sampler2D sampler_fluid;
 
-	uniform sampler2D sampler_fluid;
-
-  const float dt = .001;
+const float dt = .001;
 
 void main(void){
 	vec2 v = decode2(texture2D(sampler_fluid, uv));
 
 	vec2 D = -texSize*vec2(v.x, v.y)*dt;
 
-   vec2 Df = floor(D),   Dd = D - Df;
-   vec2 uv = uv + Df*pixelSize;
+    vec2 Df = floor(D),   Dd = D - Df;
+    vec2 uv = uv + Df*pixelSize;
 
 	vec2 uv0, uv1, uv2, uv3;
 
@@ -325,7 +324,7 @@ uniform vec2 pixelSize;
 uniform vec2 texSize;
 uniform sampler2D sampler_v;
 uniform sampler2D sampler_p;
-  const float h = 1./1024.;
+const float h = 1./1024.;
 
 void main(void){
 
@@ -482,7 +481,6 @@ void main(void){
 	var viewY = sizeY;
 
 	var halted = false;
-	var delay = 1/60;
 	var it = 1;	// main loop buffer toggle
 	var frame = 0; // frame counter (to be resetted every 1000ms)
 	var fps;
@@ -690,7 +688,6 @@ void main(void){
 
 	function setUniforms(program) {
 		gl.uniform4f(gl.getUniformLocation(program, "rnd"), Math.random(), Math.random(), Math.random(), Math.random());
-		gl.uniform4f(gl.getUniformLocation(program, "rainbow"), rainbowR, rainbowG, rainbowB, 1);
 		gl.uniform2f(gl.getUniformLocation(program, "texSize"), sizeX, sizeY);
 		gl.uniform2f(gl.getUniformLocation(program, "pixelSize"), 1. / sizeX, 1. / sizeY);
 		gl.uniform2f(gl.getUniformLocation(program, "aspect"), Math.max(1, viewX / viewY), Math.max(1, viewY / viewX));
@@ -834,6 +831,8 @@ void main(void){
 
 	}
 
+    var readback;
+
 	// main texture feedback warp
 	function advance() {
 
@@ -861,6 +860,11 @@ void main(void){
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 		gl.flush();
 
+        var pixelValues = new Uint8Array(4);
+        gl.readPixels(sizeX/2, sizeY/2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+        $('#desc').text(pixelValues[0] + "," + pixelValues[1] + "," + pixelValues[2]);
+        console.log(pixelValues);
+
 		calculateBlurTextures();
 
 		it = -it;
@@ -887,16 +891,8 @@ void main(void){
 		frames++;
 	}
 
-	var rainbowR, rainbowG, rainbowB, w = Math.PI * 2 / 3;
-
 	function anim() {
 		time = new Date().getTime();
-
-		var t = time / 150;
-
-		rainbowR = 0.5 + 0.5 * Math.sin(t);
-		rainbowG = 0.5 + 0.5 * Math.sin(t + w);
-		rainbowB = 0.5 + 0.5 * Math.sin(t - w);
 
 		if (oldMouseX != 0 && oldMouseY != 0) {
 			mouseDx = (mouseX - oldMouseX) * viewX;
@@ -908,7 +904,7 @@ void main(void){
 
 		composite();
 
-		setTimeout("requestAnimFrame(anim)", delay);
+		setTimeout(function() { requestAnimFrame(anim) }, 0);
 
 		oldMouseX = mouseX;
 		oldMouseY = mouseY;
@@ -944,11 +940,13 @@ a {
 
 #desc {
 	background-color: rgba(0, 0, 0, 0.2);
-	width: 1024px;
+	width: 400px;
 }
 </style>
 </head>
 <body>
+    <div id="desc">
+    </div>
     <canvas id="c"></canvas>
 </body>
 </html>
