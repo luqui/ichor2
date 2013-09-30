@@ -121,14 +121,6 @@ var shader_fs_advance = cat(shader_fs_inc, <<SHADER_FS_ADVANCE);
     // display, but not fed back.
     uniform sampler2D sampler_prev;
     uniform sampler2D sampler_prev_n;
-    uniform sampler2D sampler_blur;
-    uniform sampler2D sampler_blur2;
-    uniform sampler2D sampler_blur3;
-    uniform sampler2D sampler_blur4;
-    uniform sampler2D sampler_blur5;
-    uniform sampler2D sampler_blur6;
-    uniform sampler2D sampler_noise;
-    uniform sampler2D sampler_noise_n;
     uniform sampler2D sampler_fluid;
 
     uniform vec4 rnd;
@@ -173,14 +165,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     // into the simulation.
     uniform sampler2D sampler_prev;
     uniform sampler2D sampler_prev_n;
-    uniform sampler2D sampler_blur;
-    uniform sampler2D sampler_blur2;
-    uniform sampler2D sampler_blur3;
-    uniform sampler2D sampler_blur4;
-    uniform sampler2D sampler_blur5;
-    uniform sampler2D sampler_blur6;
-    uniform sampler2D sampler_noise;
-    uniform sampler2D sampler_noise_n;
     uniform sampler2D sampler_fluid;
     uniform sampler2D sampler_fluid_p;
 
@@ -195,44 +179,12 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
         gl_FragColor = last;
     }
     SHADER_FS_COMPOSITE
-
-var shader_fs_blur_horizontal = cat(shader_fs_inc, <<SHADER_FS_BLUR_HORIZONTAL);
-    // original shader from http://www.gamerendering.com/2008/10/11/gaussian-blur-filter-shader/
-    // horizontal blur fragment shader
-    uniform sampler2D src_tex;
-    uniform vec2 pixelSize;
-
-    void main(void) // fragment
-    {
-        float h = pixelSize.x;
-        vec4 sum = vec4(0.0);
-        sum += texture2D(src_tex, vec2(uv.x - 4.0*h, uv.y) ) * 0.05;
-        sum += texture2D(src_tex, vec2(uv.x - 3.0*h, uv.y) ) * 0.09;
-        sum += texture2D(src_tex, vec2(uv.x - 2.0*h, uv.y) ) * 0.12;
-        sum += texture2D(src_tex, vec2(uv.x - 1.0*h, uv.y) ) * 0.15;
-        sum += texture2D(src_tex, vec2(uv.x + 0.0*h, uv.y) ) * 0.16;
-        sum += texture2D(src_tex, vec2(uv.x + 1.0*h, uv.y) ) * 0.15;
-        sum += texture2D(src_tex, vec2(uv.x + 2.0*h, uv.y) ) * 0.12;
-        sum += texture2D(src_tex, vec2(uv.x + 3.0*h, uv.y) ) * 0.09;
-        sum += texture2D(src_tex, vec2(uv.x + 4.0*h, uv.y) ) * 0.05;
-        gl_FragColor.xyz = sum.xyz/0.98; // normalize
-        gl_FragColor.a = 1.;
-    } 
-    SHADER_FS_BLUR_HORIZONTAL
 
 var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     // Composite transforms the internal simulation state to a visible color -- it is not fed back
     // into the simulation.
     uniform sampler2D sampler_prev;
     uniform sampler2D sampler_prev_n;
-    uniform sampler2D sampler_blur;
-    uniform sampler2D sampler_blur2;
-    uniform sampler2D sampler_blur3;
-    uniform sampler2D sampler_blur4;
-    uniform sampler2D sampler_blur5;
-    uniform sampler2D sampler_blur6;
-    uniform sampler2D sampler_noise;
-    uniform sampler2D sampler_noise_n;
     uniform sampler2D sampler_fluid;
     uniform sampler2D sampler_fluid_p;
 
@@ -247,52 +199,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
         gl_FragColor = last;
     }
     SHADER_FS_COMPOSITE
-
-var shader_fs_blur_horizontal = cat(shader_fs_inc, <<SHADER_FS_BLUR_HORIZONTAL);
-    // original shader from http://www.gamerendering.com/2008/10/11/gaussian-blur-filter-shader/
-    // horizontal blur fragment shader
-    uniform sampler2D src_tex;
-    uniform vec2 pixelSize;
-
-    void main(void) // fragment
-    {
-        float h = pixelSize.x;
-        vec4 sum = vec4(0.0);
-        sum += texture2D(src_tex, vec2(uv.x - 4.0*h, uv.y) ) * 0.05;
-        sum += texture2D(src_tex, vec2(uv.x - 3.0*h, uv.y) ) * 0.09;
-        sum += texture2D(src_tex, vec2(uv.x - 2.0*h, uv.y) ) * 0.12;
-        sum += texture2D(src_tex, vec2(uv.x - 1.0*h, uv.y) ) * 0.15;
-        sum += texture2D(src_tex, vec2(uv.x + 0.0*h, uv.y) ) * 0.16;
-        sum += texture2D(src_tex, vec2(uv.x + 1.0*h, uv.y) ) * 0.15;
-        sum += texture2D(src_tex, vec2(uv.x + 2.0*h, uv.y) ) * 0.12;
-        sum += texture2D(src_tex, vec2(uv.x + 3.0*h, uv.y) ) * 0.09;
-        sum += texture2D(src_tex, vec2(uv.x + 4.0*h, uv.y) ) * 0.05;
-        gl_FragColor.xyz = sum.xyz/0.98; // normalize
-        gl_FragColor.a = 1.;
-    } 
-    SHADER_FS_BLUR_HORIZONTAL
-
-var shader_fs_blur_vertical = cat(shader_fs_inc, <<SHADER_FS_BLUR_VERTICAL);
-    uniform sampler2D src_tex;
-    uniform vec2 pixelSize;
-
-    void main(void) // fragment
-    {
-        float v = pixelSize.y;
-        vec4 sum = vec4(0.0);
-        sum += texture2D(src_tex, vec2(uv.x, - 4.0*v + uv.y) ) * 0.05;
-        sum += texture2D(src_tex, vec2(uv.x, - 3.0*v + uv.y) ) * 0.09;
-        sum += texture2D(src_tex, vec2(uv.x, - 2.0*v + uv.y) ) * 0.12;
-        sum += texture2D(src_tex, vec2(uv.x, - 1.0*v + uv.y) ) * 0.15;
-        sum += texture2D(src_tex, vec2(uv.x, + 0.0*v + uv.y) ) * 0.16;
-        sum += texture2D(src_tex, vec2(uv.x, + 1.0*v + uv.y) ) * 0.15;
-        sum += texture2D(src_tex, vec2(uv.x, + 2.0*v + uv.y) ) * 0.12;
-        sum += texture2D(src_tex, vec2(uv.x, + 3.0*v + uv.y) ) * 0.09;
-        sum += texture2D(src_tex, vec2(uv.x, + 4.0*v + uv.y) ) * 0.05;
-        gl_FragColor.xyz = sum.xyz/0.98;
-        gl_FragColor.a = 1.;
-    }
-    SHADER_FS_BLUR_VERTICAL
 
 var shader_fs_add_velocity = cat(shader_fs_inc, <<SHADER_FS_ADD_VELOCITY);
     uniform sampler2D sampler_fluid;
@@ -411,8 +317,6 @@ var gl;
 var prog_copy;
 var prog_advance;
 var prog_composite;
-var prog_blur_horizontal;
-var prog_blur_vertical;
 var prog_add_density;
 
 var prog_fluid_init;
@@ -424,41 +328,10 @@ var prog_fluid_div;
 var FBO_main;
 var FBO_main2;
 
-var FBO_noise;
-var FBO_blur;
-var FBO_blur2;
-var FBO_blur3;
-var FBO_blur4;
-var FBO_blur5;
-var FBO_blur6;
-
-var FBO_helper;
-var FBO_helper2;
-var FBO_helper3;
-var FBO_helper4;
-var FBO_helper5;
-var FBO_helper6;
-
 var texture_main_l; // main, linear
 var texture_main_n; // main, nearest (accurate uv access on the same buffer)
 var texture_main2_l; // main double buffer, linear
 var texture_main2_n; // main double buffer, nearest (accurate uv access on the same buffer)
-var texture_helper; // needed for multi-pass shader programs (2-pass Gaussian blur)
-var texture_helper2; // (1/4 resolution )
-var texture_helper3; // (1/16 resolution )
-var texture_helper4; // (1/256 resolution )
-var texture_helper5;
-var texture_helper6;
-
-var texture_blur; // full resolution blur result
-var texture_blur2; // double blur
-var texture_blur3; // quad blur
-var texture_blur4; // use low resolutions wisely ;)
-var texture_blur5;
-var texture_blur6;
-
-var texture_noise_n; // nearest
-var texture_noise_l; // linear interpolation
 
 // fluid simulation GL textures and frame buffer objects
 
@@ -504,8 +377,6 @@ var load = function() {
     
     prog_advance = createAndLinkProgram(shader_fs_advance);
     prog_composite = createAndLinkProgram(shader_fs_composite);
-    prog_blur_horizontal = createAndLinkProgram(shader_fs_blur_horizontal);
-    prog_blur_vertical = createAndLinkProgram(shader_fs_blur_vertical);
     prog_add_density = createAndLinkProgram(shader_fs_add_density);
     
     prog_fluid_init = createAndLinkProgram(shader_fs_init); // sets encoded values to zero
@@ -536,32 +407,26 @@ var load = function() {
     gl.vertexAttribPointer(aPosLoc, 3, gl.FLOAT, gl.FALSE, 0, 0);
     gl.vertexAttribPointer(aTexLoc, 2, gl.FLOAT, gl.FALSE, 0, texCoordOffset);
 
-    var noisePixels = [], pixels = [], simpixels = [], pixels2 = [], pixels3 = [], pixels4 = [], pixels5 = [], pixels6 = [];
+    var initPixels = [], pixels = [], simpixels = [];
     for ( var i = 0; i < sizeX; i++) {
         for ( var j = 0; j < sizeY; j++) {
             if ((i < sizeX/2) === (j < sizeY/2)) {
-                noisePixels.push(0,0,128,255);
+                initPixels.push(0,0,128,255);
             }
             else {
-                noisePixels.push(128,0,0,255);
+                initPixels.push(128,0,0,255);
             }
-            pixels.push(0, 0, 0, 255);
             if( i < sizeX/simScale && j < sizeY/simScale) simpixels.push(0, 0, 0, 255);
-            if( i < sizeX/2 && j < sizeY/2) pixels2.push(0, 0, 0, 255);
-            if( i < sizeX/4 && j < sizeY/4) pixels3.push(0, 0, 0, 255);
-            if( i < sizeX/8 && j < sizeY/8) pixels4.push(0, 0, 0, 255);
-            if( i < sizeX/16 && j < sizeY/16) pixels5.push(0, 0, 0, 255);
-            if( i < sizeX/32 && j < sizeY/32) pixels6.push(0, 0, 0, 255);
         }
     }
 
     FBO_main = gl.createFramebuffer();
     FBO_main2 = gl.createFramebuffer();
     var glPixels;
-    glPixels = new Uint8Array(noisePixels);
+    glPixels = new Uint8Array(initPixels);
     texture_main_n = createAndBindTexture(glPixels, 1, FBO_main, gl.NEAREST);
     texture_main2_n = createAndBindTexture(glPixels, 1, FBO_main2, gl.NEAREST);
-    glPixels = new Uint8Array(noisePixels);
+    glPixels = new Uint8Array(initPixels);
     texture_main_l = createAndBindTexture(glPixels, 1, FBO_main, gl.LINEAR);
     texture_main2_l = createAndBindTexture(glPixels, 1, FBO_main2, gl.LINEAR);
 
@@ -574,49 +439,8 @@ var load = function() {
     texture_fluid_store = createAndBindSimulationTexture(new Uint8Array(simpixels), FBO_fluid_store);
     texture_fluid_backbuffer = createAndBindSimulationTexture(new Uint8Array(simpixels), FBO_fluid_backbuffer);
     
-    FBO_helper = gl.createFramebuffer();
-    FBO_helper2 = gl.createFramebuffer();
-    FBO_helper3 = gl.createFramebuffer();
-    FBO_helper4 = gl.createFramebuffer();
-    FBO_helper5 = gl.createFramebuffer();
-    FBO_helper6 = gl.createFramebuffer();
-    texture_helper = createAndBindTexture(new Uint8Array(pixels), 1, FBO_helper, gl.NEAREST); // helper buffers for the two-pass Gaussian blur calculation basically
-    texture_helper2 = createAndBindTexture(new Uint8Array(pixels2), 2, FBO_helper2, gl.NEAREST);
-    texture_helper3 = createAndBindTexture(new Uint8Array(pixels3), 4, FBO_helper3, gl.NEAREST);
-    texture_helper4 = createAndBindTexture(new Uint8Array(pixels4), 8, FBO_helper4, gl.NEAREST);
-    texture_helper5 = createAndBindTexture(new Uint8Array(pixels5), 16, FBO_helper5, gl.NEAREST);
-    texture_helper6 = createAndBindTexture(new Uint8Array(pixels6), 32, FBO_helper6, gl.NEAREST);
-
-    FBO_blur = gl.createFramebuffer();
-    FBO_blur2 = gl.createFramebuffer();
-    FBO_blur3 = gl.createFramebuffer();
-    FBO_blur4 = gl.createFramebuffer();
-    FBO_blur5 = gl.createFramebuffer();
-    FBO_blur6 = gl.createFramebuffer();
-    texture_blur = createAndBindTexture(new Uint8Array(pixels), 1, FBO_blur, gl.LINEAR);
-    texture_blur2 = createAndBindTexture(new Uint8Array(pixels2), 2, FBO_blur2, gl.LINEAR);
-    texture_blur3 = createAndBindTexture(new Uint8Array(pixels3), 4, FBO_blur3, gl.LINEAR);
-    texture_blur4 = createAndBindTexture(new Uint8Array(pixels4), 8, FBO_blur4, gl.LINEAR);
-    texture_blur5 = createAndBindTexture(new Uint8Array(pixels5), 16, FBO_blur5, gl.LINEAR);
-    texture_blur6 = createAndBindTexture(new Uint8Array(pixels6), 32, FBO_blur6, gl.LINEAR);
-
-    FBO_noise = gl.createFramebuffer();
-    glPixels = new Uint8Array(noisePixels);
-    texture_noise_n = createAndBindTexture(glPixels, 1, FBO_noise, gl.NEAREST);
-    texture_noise_l = createAndBindTexture(glPixels, 1, FBO_noise, gl.LINEAR);
-
-    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, texture_blur);
-    gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, texture_blur2);
-    gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, texture_blur3);
-    gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, texture_blur4);
-    gl.activeTexture(gl.TEXTURE6); gl.bindTexture(gl.TEXTURE_2D, texture_blur5);
-    gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, texture_blur6);
-    gl.activeTexture(gl.TEXTURE8); gl.bindTexture(gl.TEXTURE_2D, texture_noise_l);
-    gl.activeTexture(gl.TEXTURE9); gl.bindTexture(gl.TEXTURE_2D, texture_noise_n);
     gl.activeTexture(gl.TEXTURE10); gl.bindTexture(gl.TEXTURE_2D, texture_fluid_v);
     gl.activeTexture(gl.TEXTURE11); gl.bindTexture(gl.TEXTURE_2D, texture_fluid_p);
-
-    calculateBlurTexture();
 
     fluidInit(FBO_fluid_v);
     fluidInit(FBO_fluid_p);
@@ -677,61 +501,11 @@ var setUniforms = function(program) {
 
     gl.uniform1i(gl.getUniformLocation(program, "sampler_prev"), 0);
     gl.uniform1i(gl.getUniformLocation(program, "sampler_prev_n"), 1);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_blur"), 2);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_blur2"), 3);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_blur3"), 4);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_blur4"), 5);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_blur5"), 6);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_blur6"), 7);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_noise"), 8);
-    gl.uniform1i(gl.getUniformLocation(program, "sampler_noise_n"), 9);
     gl.uniform1i(gl.getUniformLocation(program, "sampler_fluid"), 10);
     gl.uniform1i(gl.getUniformLocation(program, "sampler_fluid_p"), 11);
 };
 
-var calculateBlurTextures = function() {
-    var texture_source = (it < 0 ) ? texture_main2_l : texture_main_l;
-    calculateBlurTexture(texture_source, texture_blur, FBO_blur, texture_helper, FBO_helper, 1);
-    calculateBlurTexture(texture_blur, texture_blur2, FBO_blur2, texture_helper2, FBO_helper2, 2);
-    calculateBlurTexture(texture_blur2, texture_blur3, FBO_blur3, texture_helper3, FBO_helper3, 4);
-    calculateBlurTexture(texture_blur3, texture_blur4, FBO_blur4, texture_helper4, FBO_helper4, 8);
-    calculateBlurTexture(texture_blur4, texture_blur5, FBO_blur5, texture_helper5, FBO_helper5, 16);
-    calculateBlurTexture(texture_blur5, texture_blur6, FBO_blur6, texture_helper6, FBO_helper6, 32);
-};
-
-var calculateBlurTexture = function(sourceTex, targetTex, targetFBO, helperTex, helperFBO, scale) {
-    // copy source
-    gl.viewport(0, 0, sizeX / scale, sizeY / scale);
-    gl.useProgram(prog_copy);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, sourceTex);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, targetFBO);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.flush();
-
-    // blur vertically
-    gl.viewport(0, 0, sizeX / scale, sizeY / scale);
-    gl.useProgram(prog_blur_vertical);
-    gl.uniform2f(gl.getUniformLocation(prog_blur_vertical, "pixelSize"), scale / sizeX, scale / sizeY);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, targetTex);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, helperFBO);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.flush();
-
-    // blur horizontally
-    gl.viewport(0, 0, sizeX / scale, sizeY / scale);
-    gl.useProgram(prog_blur_horizontal);
-    gl.uniform2f(gl.getUniformLocation(prog_blur_horizontal, "pixelSize"), scale / sizeX, scale / sizeY);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, helperTex);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, targetFBO);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.flush();
-};
-
 var fluidSimulationStep = function() {
-    //addVelocity
     advect();
     diffuse();
 };
@@ -861,8 +635,6 @@ var advance = function() {
     var pixelValues = new Uint8Array(4);
     gl.readPixels(sizeX/2, sizeY/2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
     $('#desc').text(pixelValues[0] + "," + pixelValues[1] + "," + pixelValues[2]);
-
-    calculateBlurTextures();
 
     it = -it;
 };
