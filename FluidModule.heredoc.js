@@ -102,13 +102,6 @@ var shader_fs_inc = <<SHADER_FS_INC;
     }
     SHADER_FS_INC
 
-var shader_fs_copy = cat(shader_fs_inc, <<SHADER_FS_COPY);
-    uniform sampler2D source;
-    void main(void) {
-        gl_FragColor = texture2D(source, uv);
-    }
-    SHADER_FS_COPY
-
 var shader_fs_init = cat(shader_fs_inc, <<SHADER_FS_INIT);
     void main(void){
         gl_FragColor = encode2(vec2(0.));
@@ -314,7 +307,6 @@ var makeShader = function(gl, type, code) {
 
 var gl;
 
-var prog_copy;
 var prog_advance;
 var prog_composite;
 var prog_add_density;
@@ -373,8 +365,6 @@ var load = function() {
     viewX = window.innerWidth;
     viewY = window.innerHeight;
 
-    prog_copy = createAndLinkProgram(shader_fs_copy);
-    
     prog_advance = createAndLinkProgram(shader_fs_advance);
     prog_composite = createAndLinkProgram(shader_fs_composite);
     prog_add_density = createAndLinkProgram(shader_fs_add_density);
