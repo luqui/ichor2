@@ -14,13 +14,26 @@
         canvas.height = viewY;
         
         var Fluid = FluidModule(canvas);
+
+        var mouseX = 0.5, mouseY = 0.5;
+        var lastX = 0.5, lastY = 0.5;
         
         document.onmousemove = function(evt) {
-            Fluid.setMouse(evt.pageX / viewX, 1-evt.pageY / viewY);
+            mouseX = evt.pageX / viewX;
+            mouseY = 1 - evt.pageY / viewY;
         };
-    
+
+
         Fluid.load();
-        Fluid.start();
+            
+        var anim = function() {
+            Fluid.addVelocity(mouseX, mouseY, 60*(mouseX-lastX), 60*(mouseY-lastY));
+            Fluid.step();
+            lastX = mouseX;
+            lastY = mouseY;
+            setTimeout(anim, 1000/60);
+        };
+        anim();
     });
 </script>
 

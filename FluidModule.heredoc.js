@@ -135,8 +135,6 @@ var shader_fs_advance = cat(shader_fs_inc, <<SHADER_FS_ADVANCE);
     uniform vec4 rainbow;
     uniform vec2 pixelSize;
     uniform vec2 aspect;
-    uniform vec2 mouse;
-    uniform vec2 mouseV;
     uniform float fps;
 
     float norm2(vec2 vin) {
@@ -149,7 +147,7 @@ var shader_fs_advance = cat(shader_fs_inc, <<SHADER_FS_ADVANCE);
         vec4 last = texture2D(sampler_prev, uv);
 
         float flatness = 0.0001;
-        float addColor = 0.01 * flatness/(flatness + norm2(mouse - uv));
+        float addColor = 0.01 * flatness/(flatness + norm2(vec2(0.5,0.5) - uv));
         float red = last.x - last.z + addColor;
 
         gl_FragColor = vec4(red, 0., -red, 1.);
@@ -176,8 +174,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     uniform vec4 rainbow;
     uniform vec2 pixelSize;
     uniform vec2 aspect;
-    uniform vec2 mouse;
-    uniform vec2 mouseV;
     uniform float fps;
 
     void main(void) {
@@ -230,8 +226,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     uniform vec4 rainbow;
     uniform vec2 pixelSize;
     uniform vec2 aspect;
-    uniform vec2 mouse;
-    uniform vec2 mouseV;
     uniform float fps;
 
     void main(void) {
@@ -286,28 +280,28 @@ var shader_fs_blur_vertical = cat(shader_fs_inc, <<SHADER_FS_BLUR_VERTICAL);
     }
     SHADER_FS_BLUR_VERTICAL
 
-var shader_fs_add_mouse_motion = cat(shader_fs_inc, <<SHADER_FS_ADD_MOUSE_MOTION);
+var shader_fs_add_velocity = cat(shader_fs_inc, <<SHADER_FS_ADD_VELOCITY);
     uniform sampler2D sampler_fluid;
 
     uniform vec2 aspect;
-    uniform vec2 mouse; // mouse coordinate
-    uniform vec2 mouseV; // mouse velocity
+    uniform vec2 position;
+    uniform vec2 velocity;
     uniform vec2 pixelSize;
     uniform vec2 texSize;
 
-    float mouseFilter(vec2 uv){
-        return clamp( 1.-length((uv-mouse)*texSize)/8., 0. , 1.);
+    float velFilter(vec2 uv){
+        return clamp( 1.-length((uv-position)*texSize)/8., 0. , 1.);
     }
 
     void main(void){
         vec2 v = decode2(texture2D(sampler_fluid, uv));
 
-        if(length(mouseV) > 0.)
-            v = mix(v, mouseV, mouseFilter(uv)*0.85);
+        if(length(velocity) > 0.)
+            v = mix(v, velocity, velFilter(uv)*0.85);
 
         gl_FragColor = encode2(v);
     }
-    SHADER_FS_ADD_MOUSE_MOTION
+    SHADER_FS_ADD_VELOCITY
 
 var shader_fs_advect = cat(shader_fs_inc, <<SHADER_FS_ADVECT);
     uniform vec2 texSize;
@@ -397,11 +391,6 @@ var makeShader = function(gl, type, code) {
     return shader;
 };
 	
-requestAnimFrame = 
-    window.webkitRequestAnimationFrame
-        || window.mozRequestAnimationFrame
-        || function(callback, element) { setTimeout(callback, 1000 / 60); };
-
 
 var gl;
 
@@ -412,7 +401,7 @@ var prog_blur_horizontal;
 var prog_blur_vertical;
 
 var prog_fluid_init;
-var prog_fluid_add_mouse_motion;
+var prog_fluid_add_velocity;
 var prog_fluid_advect;
 var prog_fluid_p;
 var prog_fluid_div;
@@ -482,13 +471,6 @@ var halted = false;
 var it = 1;	// main loop buffer toggle
 var fps;
 
-var mouseX = 0.5;
-var mouseY = 0.5;
-var oldMouseX = 0;
-var oldMouseY = 0;
-var mouseDx = 0;
-var mouseDy = 0;
-
 var load = function() {
     try {
         gl = canvas.getContext("experimental-webgl", {
@@ -511,7 +493,7 @@ var load = function() {
     prog_blur_vertical = createAndLinkProgram(shader_fs_blur_vertical);
     
     prog_fluid_init = createAndLinkProgram(shader_fs_init); // sets encoded values to zero
-    prog_fluid_add_mouse_motion = createAndLinkProgram(shader_fs_add_mouse_motion);
+    prog_fluid_add_velocity = createAndLinkProgram(shader_fs_add_velocity);
     prog_fluid_advect = createAndLinkProgram(shader_fs_advect);
     prog_fluid_p = createAndLinkProgram(shader_fs_p);
     prog_fluid_div = createAndLinkProgram(shader_fs_div);
@@ -670,8 +652,6 @@ var setUniforms = function(program) {
     gl.uniform2f(gl.getUniformLocation(program, "texSize"), sizeX, sizeY);
     gl.uniform2f(gl.getUniformLocation(program, "pixelSize"), 1. / sizeX, 1. / sizeY);
     gl.uniform2f(gl.getUniformLocation(program, "aspect"), Math.max(1, viewX / viewY), Math.max(1, viewY / viewX));
-    gl.uniform2f(gl.getUniformLocation(program, "mouse"), mouseX, mouseY);
-    gl.uniform2f(gl.getUniformLocation(program, "mouseV"), mouseDx, mouseDy);
     gl.uniform1f(gl.getUniformLocation(program, "fps"), fps);
 
     gl.uniform1i(gl.getUniformLocation(program, "sampler_prev"), 0);
@@ -730,21 +710,21 @@ var calculateBlurTexture = function(sourceTex, targetTex, targetFBO, helperTex, 
 };
 
 var fluidSimulationStep = function() {
-    addMouseMotion();
+    //addVelocity
     advect();
     diffuse();
 };
 
-var addMouseMotion = function() {
+var addVelocity = function(posX, posY, velX, velY) {
     gl.viewport(0, 0, (sizeX/simScale), (sizeY/simScale));
-    gl.useProgram(prog_fluid_add_mouse_motion);
+    gl.useProgram(prog_fluid_add_velocity);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture_fluid_v);
-    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_mouse_motion, "aspect"), Math.max(1, viewX / viewY), Math.max(1, viewY / viewX));
-    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_mouse_motion, "mouse"), mouseX, mouseY);
-    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_mouse_motion, "mouseV"), mouseDx, mouseDy);
-    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_mouse_motion, "pixelSize"), 1. / (sizeX/simScale), 1. / (sizeY/simScale));
-    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_mouse_motion, "texSize"), (sizeX/simScale), (sizeY/simScale));
+    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_velocity, "aspect"), Math.max(1, viewX / viewY), Math.max(1, viewY / viewX));
+    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_velocity, "position"), posX, posY);
+    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_velocity, "velocity"), velX, velY);
+    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_velocity, "pixelSize"), 1. / (sizeX/simScale), 1. / (sizeY/simScale));
+    gl.uniform2f(gl.getUniformLocation(prog_fluid_add_velocity, "texSize"), (sizeX/simScale), (sizeY/simScale));
     gl.bindFramebuffer(gl.FRAMEBUFFER, FBO_fluid_backbuffer);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.flush();
@@ -861,28 +841,17 @@ var composite = function() {
     gl.flush();
 };
 
-var anim = function() {
-    if (oldMouseX != 0 && oldMouseY != 0) {
-        mouseDx = (mouseX - oldMouseX) * viewX;
-        mouseDy = (mouseY - oldMouseY) * viewY;
-    }
-
+var step = function() {
     if (!halted)
         advance();
-
     composite();
-
-    setTimeout(function() { requestAnimFrame(anim) }, 0);
-
-    oldMouseX = mouseX;
-    oldMouseY = mouseY;
 };
 
 
 return {
     load: load,
-    start: anim,
-    setMouse: function(x,y) { mouseX = x; mouseY = y; }
+    addVelocity: addVelocity,
+    step: step
 }
 
 };
