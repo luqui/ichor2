@@ -137,22 +137,33 @@ var shader_fs_advance = cat(shader_fs_inc, <<SHADER_FS_ADVANCE);
     uniform vec2 aspect;
     uniform float fps;
 
-    float norm2(vec2 vin) {
-        return vin.x*vin.x + vin.y*vin.y;
-    }
-
     void main(void) {
         vec2 motion = decode2( texture2D(sampler_fluid, uv))*pixelSize*0.75;
         vec2 uv = uv - motion; // add fluid motion
         vec4 last = texture2D(sampler_prev, uv);
 
-        float flatness = 0.0001;
-        float addColor = 0.01 * flatness/(flatness + norm2(vec2(0.5,0.5) - uv));
-        float red = last.x - last.z + addColor;
-
+        float red = last.x - last.z;
         gl_FragColor = vec4(red, 0., -red, 1.);
     }
     SHADER_FS_ADVANCE
+
+var shader_fs_add_density = cat(shader_fs_inc, <<SHADER_FS_ADD_DENSITY);
+    uniform sampler2D sampler_prev;
+    uniform vec2 position;
+    uniform float densityDelta;
+    uniform float flatness;
+    
+    float norm2(vec2 vin) {
+        return vin.x*vin.x + vin.y*vin.y;
+    }
+
+    void main(void) {
+        vec4 last = texture2D(sampler_prev, uv);
+        float addColor = densityDelta*flatness/(flatness + norm2(position - uv));
+        float red = last.x - last.z + addColor;
+        gl_FragColor = vec4(red, 0., -red, 1.); 
+    }
+    SHADER_FS_ADD_DENSITY
 
 var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     // Composite transforms the internal simulation state to a visible color -- it is not fed back
@@ -399,6 +410,7 @@ var prog_advance;
 var prog_composite;
 var prog_blur_horizontal;
 var prog_blur_vertical;
+var prog_add_density;
 
 var prog_fluid_init;
 var prog_fluid_add_velocity;
@@ -491,6 +503,7 @@ var load = function() {
     prog_composite = createAndLinkProgram(shader_fs_composite);
     prog_blur_horizontal = createAndLinkProgram(shader_fs_blur_horizontal);
     prog_blur_vertical = createAndLinkProgram(shader_fs_blur_vertical);
+    prog_add_density = createAndLinkProgram(shader_fs_add_density);
     
     prog_fluid_init = createAndLinkProgram(shader_fs_init); // sets encoded values to zero
     prog_fluid_add_velocity = createAndLinkProgram(shader_fs_add_velocity);
@@ -523,7 +536,12 @@ var load = function() {
     var noisePixels = [], pixels = [], simpixels = [], pixels2 = [], pixels3 = [], pixels4 = [], pixels5 = [], pixels6 = [];
     for ( var i = 0; i < sizeX; i++) {
         for ( var j = 0; j < sizeY; j++) {
-            noisePixels.push(0,0,128,255);
+            if ((i < sizeX/2) === (j < sizeY/2)) {
+                noisePixels.push(0,0,128,255);
+            }
+            else {
+                noisePixels.push(128,0,0,255);
+            }
             pixels.push(0, 0, 0, 255);
             if( i < sizeX/simScale && j < sizeY/simScale) simpixels.push(0, 0, 0, 255);
             if( i < sizeX/2 && j < sizeY/2) pixels2.push(0, 0, 0, 255);
@@ -730,6 +748,31 @@ var addVelocity = function(posX, posY, velX, velY) {
     gl.flush();
 };
 
+var addDensity = function(posX, posY, densityDelta, flatness) {
+    gl.viewport(0, 0, sizeX, sizeY);
+    gl.useProgram(prog_add_density);
+    setUniforms(prog_add_density);
+    gl.uniform2f(gl.getUniformLocation(prog_add_density, "position"), posX, posY);
+    gl.uniform1f(gl.getUniformLocation(prog_add_density, "densityDelta"), densityDelta);
+    gl.uniform1f(gl.getUniformLocation(prog_add_density, "flatness"), flatness);
+    if (it > 0) {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture_main_l); // interpolated input
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, texture_main_n); // "nearest" input
+        gl.bindFramebuffer(gl.FRAMEBUFFER, FBO_main2); // write to buffer
+    } else {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture_main2_l); // interpolated
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, texture_main2_n); // "nearest"
+        gl.bindFramebuffer(gl.FRAMEBUFFER, FBO_main); // write to buffer
+    }
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.flush();
+    it = -it;
+};
+
 var advect = function() {
     gl.viewport(0, 0, (sizeX/simScale), (sizeY/simScale));
     gl.useProgram(prog_fluid_advect);
@@ -851,6 +894,7 @@ var step = function() {
 return {
     load: load,
     addVelocity: addVelocity,
+    addDensity: addDensity,
     step: step
 }
 
