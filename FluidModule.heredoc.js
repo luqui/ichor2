@@ -151,15 +151,18 @@ var shader_fs_add_density = cat(shader_fs_inc, <<SHADER_FS_ADD_DENSITY);
     uniform sampler2D sampler_prev;
     uniform vec2 position;
     uniform float densityDelta;
-    uniform float flatness;
+    uniform float sigma;
     
     float norm2(vec2 vin) {
         return vin.x*vin.x + vin.y*vin.y;
     }
 
+    const float pi = 3.14159265;
+
     void main(void) {
         vec4 last = texture2D(sampler_prev, uv);
-        float addColor = densityDelta*flatness/(flatness + norm2(position - uv));
+        float addColor = densityDelta/(2.*pi*sigma*sigma) 
+                       * exp(-0.5*norm2(position - uv)/(sigma*sigma));
         float red = last.x - last.z + addColor;
         gl_FragColor = vec4(red, 0., -red, 1.); 
     }
@@ -748,13 +751,13 @@ var addVelocity = function(posX, posY, velX, velY) {
     gl.flush();
 };
 
-var addDensity = function(posX, posY, densityDelta, flatness) {
+var addDensity = function(posX, posY, densityDelta, sigma) {
     gl.viewport(0, 0, sizeX, sizeY);
     gl.useProgram(prog_add_density);
     setUniforms(prog_add_density);
     gl.uniform2f(gl.getUniformLocation(prog_add_density, "position"), posX, posY);
     gl.uniform1f(gl.getUniformLocation(prog_add_density, "densityDelta"), densityDelta);
-    gl.uniform1f(gl.getUniformLocation(prog_add_density, "flatness"), flatness);
+    gl.uniform1f(gl.getUniformLocation(prog_add_density, "sigma"), sigma);
     if (it > 0) {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture_main_l); // interpolated input

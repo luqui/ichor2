@@ -28,7 +28,7 @@
             
         var anim = function() {
             Fluid.addVelocity(mouseX, mouseY, 60*(mouseX-lastX), 60*(mouseY-lastY));
-            Fluid.addDensity(mouseX, mouseY, 0.01, 0.0001);
+            Fluid.addDensity(mouseX, mouseY, 0.001, 0.005);
             Fluid.step();
             lastX = mouseX;
             lastY = mouseY;
