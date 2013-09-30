@@ -7,7 +7,19 @@
 
 <script type="text/javascript">
     $(function() {
-        var Fluid = FluidModule();
+        var viewX = window.innerWidth, viewY = window.innerHeight;
+
+        var canvas = $('#c')[0];
+        canvas.width = viewX;
+        canvas.height = viewY;
+        
+        var Fluid = FluidModule(canvas);
+        
+        document.onmousemove = function(evt) {
+            Fluid.setMouse(evt.pageX / viewX, 1-evt.pageY / viewY);
+        };
+    
+        Fluid.load();
         Fluid.start();
     });
 </script>

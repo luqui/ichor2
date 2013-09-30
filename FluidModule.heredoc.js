@@ -1,4 +1,4 @@
-FluidModule = function() {
+FluidModule = function(canvas) {
 
 var cat = function() {
     var r = "";
@@ -138,7 +138,6 @@ var shader_fs_advance = cat(shader_fs_inc, <<SHADER_FS_ADVANCE);
     uniform vec2 mouse;
     uniform vec2 mouseV;
     uniform float fps;
-    uniform float time;
 
     float norm2(vec2 vin) {
         return vin.x*vin.x + vin.y*vin.y;
@@ -180,7 +179,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     uniform vec2 mouse;
     uniform vec2 mouseV;
     uniform float fps;
-    uniform float time;
 
     void main(void) {
         vec4 last = texture2D(sampler_prev, uv);
@@ -235,7 +233,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     uniform vec2 mouse;
     uniform vec2 mouseV;
     uniform float fps;
-    uniform float time;
 
     void main(void) {
         vec4 last = texture2D(sampler_prev, uv);
@@ -484,7 +481,6 @@ var viewY = sizeY;
 var halted = false;
 var it = 1;	// main loop buffer toggle
 var fps;
-var time;
 
 var mouseX = 0.5;
 var mouseY = 0.5;
@@ -494,9 +490,8 @@ var mouseDx = 0;
 var mouseDy = 0;
 
 var load = function() {
-    var c = document.getElementById("c");
     try {
-        gl = c.getContext("experimental-webgl", {
+        gl = canvas.getContext("experimental-webgl", {
             depth : false
         });
     } catch (e) {}
@@ -504,19 +499,9 @@ var load = function() {
         alert("Your browser does not support WebGL");
         return;
     }
-    document.onmousemove = function(evt) {
-        mouseX = evt.pageX / viewX;
-        mouseY = 1 - evt.pageY / viewY;
-    };
-    document.onclick = function(evt) {
-        //stop = 0;//(stop == 1)?0:1;
-    };
     
     viewX = window.innerWidth;
     viewY = window.innerHeight;
-
-    c.width = viewX;
-    c.height = viewY;
 
     prog_copy = createAndLinkProgram(shader_fs_copy);
     
@@ -634,10 +619,6 @@ var load = function() {
     fluidInit(FBO_fluid_p);
     fluidInit(FBO_fluid_store);
     fluidInit(FBO_fluid_backbuffer);
-    
-    time = new Date().getTime();
-
-    anim();
 };
 
 
@@ -692,7 +673,6 @@ var setUniforms = function(program) {
     gl.uniform2f(gl.getUniformLocation(program, "mouse"), mouseX, mouseY);
     gl.uniform2f(gl.getUniformLocation(program, "mouseV"), mouseDx, mouseDy);
     gl.uniform1f(gl.getUniformLocation(program, "fps"), fps);
-    gl.uniform1f(gl.getUniformLocation(program, "time"), time);
 
     gl.uniform1i(gl.getUniformLocation(program, "sampler_prev"), 0);
     gl.uniform1i(gl.getUniformLocation(program, "sampler_prev_n"), 1);
@@ -882,8 +862,6 @@ var composite = function() {
 };
 
 var anim = function() {
-    time = new Date().getTime();
-
     if (oldMouseX != 0 && oldMouseY != 0) {
         mouseDx = (mouseX - oldMouseX) * viewX;
         mouseDy = (mouseY - oldMouseY) * viewY;
@@ -902,7 +880,9 @@ var anim = function() {
 
 
 return {
-    start: load
+    load: load,
+    start: anim,
+    setMouse: function(x,y) { mouseX = x; mouseY = y; }
 }
 
 };
