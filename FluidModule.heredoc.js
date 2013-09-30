@@ -617,11 +617,15 @@ var advance = function() {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.flush();
 
-    var pixelValues = new Uint8Array(4);
-    gl.readPixels(sizeX/2, sizeY/2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
-    $('#desc').text(pixelValues[0] + "," + pixelValues[1] + "," + pixelValues[2]);
-
     it = -it;
+};
+
+var readDensity = function(x,y) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, FBO_main); // XXX bind different based on 'it': front/back
+    
+    var pixelValues = new Uint8Array(4);
+    gl.readPixels(x*sizeX, y*sizeY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+    return (1/256.0) * (pixelValues[0] - pixelValues[2]);
 };
 
 var composite = function() {
@@ -655,6 +659,7 @@ return {
     load: load,
     addVelocity: addVelocity,
     addDensity: addDensity,
+    readDensity: readDensity,
     step: step
 }
 
