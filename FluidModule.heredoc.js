@@ -120,7 +120,6 @@ var shader_fs_advance = cat(shader_fs_inc, <<SHADER_FS_ADVANCE);
     uniform vec4 rainbow;
     uniform vec2 pixelSize;
     uniform vec2 aspect;
-    uniform float fps;
 
     void main(void) {
         vec2 motion = decode2( texture2D(sampler_fluid, uv))*pixelSize*0.75;
@@ -165,7 +164,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     uniform vec4 rainbow;
     uniform vec2 pixelSize;
     uniform vec2 aspect;
-    uniform float fps;
 
     void main(void) {
         vec4 last = texture2D(sampler_prev, uv);
@@ -185,7 +183,6 @@ var shader_fs_composite = cat(shader_fs_inc, <<SHADER_FS_COMPOSITE);
     uniform vec4 rainbow;
     uniform vec2 pixelSize;
     uniform vec2 aspect;
-    uniform float fps;
 
     void main(void) {
         vec4 last = texture2D(sampler_prev, uv);
@@ -349,7 +346,6 @@ var viewY = sizeY;
 
 var halted = false;
 var it = 1;	// main loop buffer toggle
-var fps;
 
 var load = function() {
     try {
@@ -487,7 +483,6 @@ var setUniforms = function(program) {
     gl.uniform2f(gl.getUniformLocation(program, "texSize"), sizeX, sizeY);
     gl.uniform2f(gl.getUniformLocation(program, "pixelSize"), 1. / sizeX, 1. / sizeY);
     gl.uniform2f(gl.getUniformLocation(program, "aspect"), Math.max(1, viewX / viewY), Math.max(1, viewY / viewX));
-    gl.uniform1f(gl.getUniformLocation(program, "fps"), fps);
 
     gl.uniform1i(gl.getUniformLocation(program, "sampler_prev"), 0);
     gl.uniform1i(gl.getUniformLocation(program, "sampler_prev_n"), 1);
